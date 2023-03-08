@@ -65,7 +65,6 @@ resource "keycloak_ldap_group_mapper" "ldap_group_mapper" {
   group_object_classes      = [
     "Group"
   ]
-  mode                           = "IMPORT"
   membership_attribute_type      = "DN"
   membership_ldap_attribute      = "member"
   membership_user_ldap_attribute = "cn"
@@ -74,19 +73,27 @@ resource "keycloak_ldap_group_mapper" "ldap_group_mapper" {
   preserve_group_inheritance     = false
 }
 
-data "keycloak_group" "admin_group" {
+resource "keycloak_group" "admin_group" {
   realm_id = keycloak_realm.realm.id
   name     = "admin_staff"
 }
 
+data "keycloak_openid_client" "realm_management" {
+  realm_id  = keycloak_realm.realm.id
+  client_id = "realm-management"
+}
+
+data "keycloak_role" "realm_admin_role" {
+  realm_id    = keycloak_realm.realm.id
+  client_id   = data.keycloak_openid_client.realm_management.id
+  name        = "realm-admin"
+}
+
 resource "keycloak_group_roles" "admin_group_roles" {
-  for_each = {
-    "realm_admin": "ace94286-20cd-486c-9ec7-64035aa9ea0f"
-  }
   realm_id = keycloak_realm.realm.id
-  group_id = data.keycloak_group.admin_group.id
+  group_id = keycloak_group.admin_group.id
 
   role_ids = [
-    each.value,
+    data.keycloak_role.realm_admin_role.id
   ]
 }
