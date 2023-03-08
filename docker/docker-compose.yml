@@ -1,0 +1,16 @@
+version: "3.3"
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:20.0.5
+    container_name: kc_admin_keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8099:8080"
+    entrypoint: /opt/keycloak/bin/kc.sh start-dev
+  ldap:
+    image: rroemhild/test-openldap
+    container_name: kc_admin_ldap
+    ports:
+      - "10389:10389"
